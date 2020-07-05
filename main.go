@@ -1,5 +1,10 @@
 package main
 
+import (
+	"fmt"
+	"net/http"
+)
+
 func main() {
 	links := []string{
 		"http://google.com",
@@ -9,7 +14,21 @@ func main() {
 		"http://amazon.com",
 	}
 
-	for _, link := range links {
+	c := make(chan string)
 
+	for _, link := range links {
+		go checkLink(link, c)
 	}
+	fmt.Println(<-c)
+}
+
+func checkLink(link string, c chan string) {
+	_, err := http.Get(link)
+	if err != nil {
+		fmt.Println(link, "could not be reached.")
+		c <- "Appears to be down."
+		return
+	}
+	fmt.Println(link, "is up and running.")
+	c <- "Webpage is live."
 }
